@@ -23,9 +23,15 @@
     if (gu != null) {
       var gg = gu.trim();
       if (gg) {
-        o.gatewayUrl = gg;
-        explicitGatewayFromQuery = true;
-        changed = true;
+        // Only accept gatewayUrl that points to the same host (prevent open-redirect to attacker WS)
+        try {
+          var parsed = new URL(gg);
+          if (parsed.hostname === location.hostname) {
+            o.gatewayUrl = gg;
+            explicitGatewayFromQuery = true;
+            changed = true;
+          }
+        } catch (_) { /* ignore malformed URL */ }
       }
       params.delete("gatewayUrl");
       strip = true;
@@ -71,5 +77,7 @@
       u.search = next;
       window.history.replaceState({}, "", u.toString());
     }
-  } catch {}
+  } catch (e) {
+    console.warn("[gateway-host-fix]", e);
+  }
 })();

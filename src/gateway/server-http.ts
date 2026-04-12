@@ -503,6 +503,13 @@ function isValidWebSocketOrigin(req: IncomingMessage): boolean {
     if (isTailnetIPv4(hostname)) return true;
     if (isTailnetIPv6(hostname)) return true;
 
+    // Allow Origin matching the request Host header (e.g. Control UI served from
+    // the gateway itself at http://PUBLIC_IP:18789). This is safe against CSWSH
+    // because the browser sets both Origin and Host; an attacker page on a
+    // different origin cannot forge the Host header to match its own Origin.
+    // Note: behind a misconfigured reverse proxy the Host header could be
+    // attacker-controlled — but SECURITY.md already advises against public
+    // exposure without a trusted proxy + gateway auth.
     const hostHeader = (req.headers.host ?? "").trim();
     if (hostHeader) {
       const ol = origin.toLowerCase();
